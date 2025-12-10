@@ -12,41 +12,40 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
-      - name: Deploy to EC2 via SSH
+        
+      - name: Deploy to EC2
         uses: appleboy/ssh-action@master
-        env:
-          TARGET: "/home/ubuntu/gemini-frontend"
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           port: 22
-          envs: TARGET
-
           script: |
+            TARGET="/home/ubuntu/gemini-frontend"
+            
             echo "=== Starting Deployment on EC2 ==="
 
-            # Ensure directory exists
-            sudo mkdir -p "$TARGET"
+            
+            if [ ! -d "$TARGET/.git" ]; then
+              echo "=== Cloning repository ==="
+              git clone https://github.com/iameerhamza03/gemini-frontend.git $TARGET
+            else
+              echo "=== Pulling latest code ==="
+              cd "$TARGET"
+              git pull origin main
+            fi
+
             cd "$TARGET"
 
-            echo "=== Pulling latest code ==="
-            git pull origin main
-
             echo "=== Stopping old container ==="
-            COMMIT_HASH=$(git rev-parse --short HEAD)
-            docker build --no-cache -t gemini-live-ui:$COMMIT_HASH .
             docker stop gemini-live || true
             docker rm gemini-live || true
 
-            echo "=== Building new Docker image ==="
-            docker build -t gemini-live-ui:new .
+            COMMIT_HASH=$(git rev-parse --short HEAD)
+            echo "=== Building Docker image: gemini-live-ui:$COMMIT_HASH ==="
+            docker build --no-cache -t gemini-live-ui:$COMMIT_HASH .
 
             echo "=== Running new container ==="
-            docker run -d \
-              --name gemini-live \
-              -p 3000:3000 \
-              gemini-live-ui:$COMMIT_HASH
+            docker run -d --name gemini-live -p 3000:3000 gemini-live-ui:$COMMIT_HASH
 
             echo "=== Deployment completed successfully ==="
