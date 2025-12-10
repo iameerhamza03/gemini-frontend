@@ -32,6 +32,8 @@ jobs:
             # Stop and remove old container
             docker stop gemini-live || true
             docker rm gemini-live || true
+            sudo fuser -k 3000/tcp || true
+            docker rmi $(docker images -q gemini-live-ui) || true
 
             # Build Docker image with commit hash
             COMMIT_HASH=$(git rev-parse --short HEAD)
