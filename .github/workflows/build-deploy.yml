@@ -40,8 +40,9 @@ jobs:
             echo "=== Stopping old container ==="
             docker stop gemini-live || true
             docker rm gemini-live || true
-
+            cd /home/ubuntu/gemini-frontend
             COMMIT_HASH=$(git rev-parse --short HEAD)
+            echo $COMMIT_HASH
             echo "=== Building Docker image: gemini-live-ui:$COMMIT_HASH ==="
             docker build --no-cache -t gemini-live-ui:$COMMIT_HASH .
 
