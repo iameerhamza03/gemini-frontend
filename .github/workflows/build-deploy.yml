@@ -24,7 +24,7 @@ jobs:
           port: 22
           script: |
             TARGET="/home/ubuntu/gemini-frontend"
-            cd $TARGET || git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git $TARGET
+            cd $TARGET || git clone https://github.com/iameerhamza03/gemini-frontend.git $TARGET
             cd $TARGET
             git reset --hard
             git pull origin main
