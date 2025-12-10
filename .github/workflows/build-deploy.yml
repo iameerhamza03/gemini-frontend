@@ -10,9 +10,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout code
       - name: Checkout code
         uses: actions/checkout@v2
-        
+
+      # 2️⃣ Deploy to EC2 via SSH
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master
         with:
@@ -22,31 +24,18 @@ jobs:
           port: 22
           script: |
             TARGET="/home/ubuntu/gemini-frontend"
-            
-            echo "=== Starting Deployment on EC2 ==="
+            cd $TARGET || git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git $TARGET
+            cd $TARGET
+            git reset --hard
+            git pull origin main
 
-            
-            if [ ! -d "$TARGET/.git" ]; then
-              echo "=== Cloning repository ==="
-              git clone https://github.com/iameerhamza03/gemini-frontend.git $TARGET
-            else
-              echo "=== Pulling latest code ==="
-              cd "$TARGET"
-              git pull origin main
-            fi
-
-            cd "$TARGET"
-
-            echo "=== Stopping old container ==="
+            # Stop and remove old container
             docker stop gemini-live || true
             docker rm gemini-live || true
-            cd /home/ubuntu/gemini-frontend
+
+            # Build Docker image with commit hash
             COMMIT_HASH=$(git rev-parse --short HEAD)
-            echo $COMMIT_HASH
-            echo "=== Building Docker image: gemini-live-ui:$COMMIT_HASH ==="
             docker build --no-cache -t gemini-live-ui:$COMMIT_HASH .
 
-            echo "=== Running new container ==="
+            # Run new container
             docker run -d --name gemini-live -p 3000:3000 gemini-live-ui:$COMMIT_HASH
-
-            echo "=== Deployment completed successfully ==="
