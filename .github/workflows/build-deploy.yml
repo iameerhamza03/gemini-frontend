@@ -16,7 +16,7 @@ jobs:
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@master
         env:
-          TARGET: ${{ secrets.PROJECT_PATH }}
+          TARGET: "/home/ubuntu/gemini-frontend"
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
