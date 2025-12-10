@@ -20,9 +20,9 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           port: 22
+          envs: PROJECT_PATH
           script:
-            cd "${{ secrets.GEMINI_PROJECT_PATH }}"
-            npm install
+            cd "$PROJECT_PATH"
             git pull origin main
             docker build -t gemini-live-ui:new .
             docker run -d -p 3000:3000 --name gemini-live gemini-live-ui:new
