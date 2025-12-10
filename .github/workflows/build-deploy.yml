@@ -35,6 +35,8 @@ jobs:
             git pull origin main
 
             echo "=== Stopping old container ==="
+            COMMIT_HASH=$(git rev-parse --short HEAD)
+            docker build --no-cache -t gemini-live-ui:$COMMIT_HASH .
             docker stop gemini-live || true
             docker rm gemini-live || true
 
