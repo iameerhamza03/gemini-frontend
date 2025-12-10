@@ -47,6 +47,6 @@ jobs:
             docker run -d \
               --name gemini-live \
               -p 3000:3000 \
-              gemini-live-ui:new
+              gemini-live-ui:$COMMIT_HASH
 
             echo "=== Deployment completed successfully ==="
