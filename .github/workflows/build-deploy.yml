@@ -24,8 +24,9 @@ jobs:
           port: 22
           envs: TARGET
           script:     |
-            echo "Moving to directory..."
+            mkdir -p "$TARGET"
             cd "$TARGET"
+            echo "Moving to directory..."
             echo "I am now in $(pwd)"
             git pull origin main
             docker build -t gemini-live-ui:new .
