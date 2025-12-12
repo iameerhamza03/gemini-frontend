@@ -46,7 +46,7 @@ jobs:
             git reset --hard
             git pull origin main
             
-            IMAGE_TAG=${{ secrets.DOCKERHUB_USERNAME }}/gemini-frontend:${{ github.sha }}
+            IMAGE_TAG=${{ secrets.DOCKERHUB_USERNAME }}/gemini-live-ui:${{ github.sha }}
                         
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
