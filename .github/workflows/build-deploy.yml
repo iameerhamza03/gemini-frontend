@@ -20,22 +20,14 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          # Create a tag using the unique Commit Hash
-          IMAGE_TAG=${{ secrets.DOCKERHUB_USERNAME }}/gemini-frontend:${{ github.sha }}
-          
-          # Build the image
+          IMAGE_TAG=${{ secrets.DOCKERHUB_USERNAME }}/gemini-live-ui:${{ github.sha }}
           docker build -t $IMAGE_TAG .
-          
-          # Push the image to Docker Hub
           docker push $IMAGE_TAG
-  
+
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master
         with:
@@ -44,11 +36,22 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           port: 22
           script: |
+            TARGET="/home/ubuntu/gemini-frontend"
+            
+            if [ ! -d "$TARGET" ]; then
+              git clone https://github.com/iameerhamza03/gemini-frontend.git $TARGET
+            fi
+            
+            cd $TARGET
+            git reset --hard
+            git pull origin main
+            
             IMAGE_TAG=${{ secrets.DOCKERHUB_USERNAME }}/gemini-frontend:${{ github.sha }}
+                        
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
             docker stop gemini-live || true
             docker rm gemini-live || true
-
+            
             docker pull $IMAGE_TAG
             docker run -d --name gemini-live -p 3000:3000 $IMAGE_TAG
