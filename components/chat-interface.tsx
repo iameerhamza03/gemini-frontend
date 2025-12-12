@@ -57,7 +57,7 @@ export function ChatInterface({ sidebarOpen, onToggleSidebar }: ChatInterfacePro
           className="text-center mb-12"
         >
           <h2 className="text-4xl md:text-5xl font-light tracking-tight">
-            <span className="text-foreground">Tell to </span>
+            <span className="text-foreground">Talk to </span>
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Gemini Live</span>
           </h2>
         </motion.div>
