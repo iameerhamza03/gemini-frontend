@@ -6,13 +6,35 @@ on:
       - main
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and Push Docker Image
+        run: |
+          # Create a tag using the unique Commit Hash
+          IMAGE_TAG=${{ secrets.DOCKER_USERNAME }}/gemini-frontend:${{ github.sha }}
+          
+          # Build the image
+          docker build -t $IMAGE_TAG .
+          
+          # Push the image to Docker Hub
+          docker push $IMAGE_TAG
+  
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
       
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master
@@ -22,21 +44,11 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           port: 22
           script: |
-            TARGET="/home/ubuntu/gemini-frontend"
-            cd $TARGET || git clone https://github.com/iameerhamza03/gemini-frontend.git $TARGET
-            cd $TARGET
-            git reset --hard
-            git pull origin main
+            IMAGE_TAG=${{ secrets.DOCKER_USERNAME }}/gemini-frontend:${{ github.sha }}
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-            
             docker stop gemini-live || true
             docker rm gemini-live || true
-            sudo fuser -k 3000/tcp || true
-            docker rmi $(docker images -q gemini-live-ui) || true
 
-            
-            COMMIT_HASH=$(git rev-parse --short HEAD)
-            docker build --no-cache -t gemini-live-ui:$COMMIT_HASH .
-
-            # Run new container
-            docker run -d --name gemini-live -p 3000:3000 gemini-live-ui:$COMMIT_HASH
+            docker pull $IMAGE_TAG
+            docker run -d --name gemini-live -p 3000:3000 $IMAGE_TAG
